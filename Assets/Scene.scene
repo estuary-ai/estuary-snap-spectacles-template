@@ -2888,9 +2888,8 @@
     {}
   ScriptInputs:
     "":
-      apiKey: est_N0gCU_GJPHwykfl8Ap9lqe-p94XizZ5EW-8M6a9xtrw
-      characterId: 71b5a099-1c97-4162-b511-57714bdddbbb
-      serverUrl: "ws://192.168.8.202:4001"
+      apiKey: ""
+      characterId: ""
       useSnapAccountId: true
       userIdField: ""
       debugMode: true
