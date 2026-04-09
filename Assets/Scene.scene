@@ -12,6 +12,7 @@
     - !<own> 6f93ef89-a2e7-42e9-87e9-c8fe757a6418
     - !<own> 8d9a2b22-6b61-45b3-b385-4092cc3606ca
     - !<own> 9b177d38-0678-484d-ac85-2518bc62873b
+    - !<own> e3bbc7d1-20cb-4eba-b246-20f0bbadae1f
   layers: !<Layers/267ee9a7-aff2-4f9d-9a49-f71214747d03>
     userLayers:
       - |
@@ -2051,6 +2052,29 @@
     []
   Components:
     - !<own> 1ce9695f-d1b1-4a20-903b-176ee3f6d635
+- !<ScriptComponent/97c1f6f6-def1-4a27-82a8-9b79a3995573>
+  PrefabRemaps:
+    []
+  Name: ExampleSayLine
+  Enabled: true
+  ScriptAsset: !<reference> 256c55bc-67b6-4080-aa6a-f75a1bc9f379
+  ScriptInputsDefault:
+    delayBeforeFirstLine: true
+    autoSpeakOnConnect: true
+    scriptedLines: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      delayBeforeFirstLine: !<float> 2.000000
+      autoSpeakOnConnect: true
+      scriptedLines: !<string[]>
+        - "Welcome to my shop, adventurer! I have wares if you have coin."
+        - "That sword you're carrying looks like it's seen better days. I could fix it up for you."
+        - "Come back anytime. I'll keep the forge warm."
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/97ceb53a-6d84-4696-b561-c788e275009c>
   PrefabRemaps:
     []
@@ -2229,6 +2253,7 @@
     - !<own> d7bb1b67-be5d-4d3b-b00b-3b18e211944b
     - !<own> 82b84c6b-0411-480b-adea-e95785049b06
     - !<own> f78b7f93-3510-4a6f-a58e-3db6b13c8d66
+    - !<own> e9dc1b82-5014-4e90-8b56-4acdaaf3778f
   Components:
     []
 - !<SceneObject/9b27be71-e407-4de2-8bc7-802952a45996>
@@ -2865,7 +2890,7 @@
     "":
       apiKey: est_N0gCU_GJPHwykfl8Ap9lqe-p94XizZ5EW-8M6a9xtrw
       characterId: 71b5a099-1c97-4162-b511-57714bdddbbb
-      serverUrl: "ws://localhost:4001"
+      serverUrl: "ws://192.168.8.202:4001"
       useSnapAccountId: true
       userIdField: ""
       debugMode: true
@@ -3420,6 +3445,21 @@
   Components:
     - !<own> 5fa3158e-bca8-4526-a8dc-4fdd43a2e7c5
     - !<own> 0c84248c-7a12-4b1e-acbf-dc14ba5247b5
+- !<SceneObject/e3bbc7d1-20cb-4eba-b246-20f0bbadae1f>
+  PrefabRemaps:
+    []
+  Name: ExampleSayLine
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 97c1f6f6-def1-4a27-82a8-9b79a3995573
 - !<SceneObject/e4f1cdd8-4e34-46d8-ba49-f4d8fb9ec619>
   PrefabRemaps:
     []
@@ -3511,6 +3551,21 @@
     HasSegmentScaleCompensation: false
   Children:
     - !<own> 3442d011-7e9b-4866-85e2-67315e9303e7
+  Components:
+    []
+- !<SceneObject/e9dc1b82-5014-4e90-8b56-4acdaaf3778f>
+  PrefabRemaps:
+    []
+  Name: Object 0
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
   Components:
     []
 - !<ScriptComponent/e9e18fff-b53a-40cf-b83b-ce79f98ad961>

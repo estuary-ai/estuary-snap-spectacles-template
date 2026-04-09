@@ -57,7 +57,9 @@ export class ExampleSayLine extends BaseScriptComponent {
      * Edit these lines to customize what the character says.
      * Call sayNext() to advance through them.
      */
-    private scriptedLines: string[] = [
+    @input
+    @hint("Lines for the character to say")
+    scriptedLines: string[] = [
         "Welcome to my shop, adventurer! I have wares if you have coin.",
         "That sword you're carrying looks like it's seen better days. I could fix it up for you.",
         "Come back anytime. I'll keep the forge warm.",
