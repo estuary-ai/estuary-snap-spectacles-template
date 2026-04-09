@@ -77,7 +77,7 @@ interface AuthenticateData {
     api_key: string;
     character_id: string;
     player_id: string;
-    audio_sample_rate?: number;  // TTS playback sample rate (default 48000, use 16000 for Spectacles)
+    audio_sample_rate?: number;  // TTS playback sample rate (default 24000 for Spectacles)
 }
 
 /**
@@ -269,6 +269,25 @@ export class EstuaryClient extends EventEmitter<any> {
         const payload: TextPayload = { text };
         this.emitSocketEvent('text', payload);
         this.log(`Sent text: ${text}`);
+    }
+
+    /**
+     * Script the character to say a specific prewritten line.
+     * @param text The scripted line text
+     * @param textOnly If true, text-only response (no TTS audio). Default false.
+     */
+    sayLine(text: string, textOnly: boolean = false): void {
+        if (!text || !text.trim()) {
+            this.logError('Cannot say line: text is empty');
+            return;
+        }
+        if (!this.isConnected) {
+            this.logError('Cannot say line: not connected');
+            return;
+        }
+        const payload = { text, text_only: textOnly };
+        this.emitSocketEvent('say_line', payload);
+        this.log(`Say line: ${text.substring(0, 50)}`);
     }
 
     /**
@@ -464,7 +483,7 @@ export class EstuaryClient extends EventEmitter<any> {
             api_key: this._config.apiKey,
             character_id: this._config.characterId,
             player_id: this._config.playerId,
-            audio_sample_rate: this._config.playbackSampleRate || 16000  // Default 16kHz for Spectacles
+            audio_sample_rate: this._config.playbackSampleRate || 24000  // Default 24kHz for Spectacles
         };
 
         this.log(`Authenticating with player_id: ${this._config.playerId}`);

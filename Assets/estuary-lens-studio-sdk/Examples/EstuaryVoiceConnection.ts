@@ -101,12 +101,12 @@ export class EstuaryVoiceConnection extends BaseScriptComponent {
     @hint("Connect the InternetModule from your scene")
     internetModule: InternetModule;
     
-    /** 
+    /**
      * Default sample rate for audio playback.
-     * 16000Hz is optimized for Snap Spectacles hardware.
-     * Other platforms may use 48000Hz.
+     * 24000Hz matches Snap's official Spectacles examples.
+     * Mic input remains 16kHz (hardware-locked).
      */
-    audioSampleRate: number = 16000;
+    audioSampleRate: number = 24000;
 
     
     // ==================== Private Members ====================
@@ -115,6 +115,8 @@ export class EstuaryVoiceConnection extends BaseScriptComponent {
     private microphone: EstuaryMicrophone | null = null;
     private actionManager: EstuaryActionManager | null = null;
     private dynamicAudioOutput: DynamicAudioOutput | null = null;
+    private audioComponent: AudioComponent | null = null;
+    private _outputVolume: number = 1.0;
     private playerId: string = "";
     private updateEvent: SceneEvent | null = null;
     private audioInitialized: boolean = false;
@@ -195,7 +197,30 @@ export class EstuaryVoiceConnection extends BaseScriptComponent {
     onDestroy() {
         this.disconnect();
     }
-    
+
+    /**
+     * Switch to a different character. Disconnects current, reconnects with new ID.
+     * Used by the gallery to switch characters without destroying the SceneObject.
+     */
+    public switchCharacter(characterId: string): void {
+        if (!this.credentials) {
+            print("[EstuaryVoiceConnection] ERROR: No credentials for switchCharacter");
+            return;
+        }
+
+        this.log("Switching to character: " + characterId);
+
+        // Tear down old connection (mic, audio, action manager, character)
+        this.disconnect();
+
+        // Update credentials
+        this.credentials.characterId = characterId;
+
+        // Reconnect with the new character ID
+        // (reuses existing credentials, InternetModule, playerId from onAwake)
+        this.connect();
+    }
+
     // ==================== Connection ====================
     
     private connect(): void {
@@ -247,22 +272,43 @@ export class EstuaryVoiceConnection extends BaseScriptComponent {
     }
     
     private disconnect(): void {
+        // Each step wrapped individually — a crash in one shouldn't prevent cleanup of others
         if (this.microphone) {
-            this.microphone.stopRecording();
-            this.microphone.dispose();
+            try {
+                this.microphone.stopRecording();
+                // Don't call dispose() — it nulls _microphoneRecorder and the
+                // onAudioFrame subscription is never cleaned up on the hardware recorder.
+            } catch (e: any) {
+                print('[EstuaryVoiceConnection] Mic cleanup error: ' + (e.message || e));
+            }
             this.microphone = null;
         }
         if (this.actionManager) {
-            this.actionManager.dispose();
+            try {
+                this.actionManager.dispose();
+            } catch (e: any) {
+                print('[EstuaryVoiceConnection] ActionManager cleanup error: ' + (e.message || e));
+            }
             this.actionManager = null;
         }
-        if (this.dynamicAudioOutput) {
-            this.dynamicAudioOutput.interruptAudioOutput();
-            this.dynamicAudioOutput = null;
-        }
+        // Disconnect character BEFORE interrupting audio —
+        // stops the WebSocket from feeding new audio chunks during teardown
         if (this.character) {
-            this.character.dispose();
+            try {
+                this.character.dispose();
+            } catch (e: any) {
+                print('[EstuaryVoiceConnection] Character dispose error: ' + (e.message || e));
+            }
             this.character = null;
+        }
+        // Interrupt audio but DON'T null — dynamicAudioOutput is a persistent hardware
+        // component that gets double-initialized if re-discovered, causing crash on 2nd switch
+        if (this.dynamicAudioOutput) {
+            try {
+                this.dynamicAudioOutput.interruptAudioOutput();
+            } catch (e: any) {
+                print('[EstuaryVoiceConnection] Audio interrupt error: ' + (e.message || e));
+            }
         }
     }
     
@@ -360,13 +406,27 @@ export class EstuaryVoiceConnection extends BaseScriptComponent {
      * from connect() so that package scripts from RemoteServiceGateway.lspkg
      * have had time to run their onAwake() and expose their APIs.
      */
+    /** Cached MicrophoneRecorder hardware reference (persistent across connections) */
+    private _cachedMicRecorder: MicrophoneRecorder | null = null;
+
     private discoverHardwareComponents(): void {
-        // Skip if already discovered (e.g. on reconnect)
+        // Audio output: persistent hardware, discover once
         if (!this.dynamicAudioOutput) {
             this.discoverDynamicAudioOutput();
         }
+        // Mic: full discovery on first connect, reuse cached recorder on reconnect.
+        // setMicrophoneRecorder adds an onAudioFrame listener each time, but old
+        // listeners are harmless — the old mic has _isRecording=false so handleAudioFrame
+        // returns immediately. Only the current mic processes frames.
         if (this.microphone && !this.microphone.isRecording) {
-            this.discoverMicrophoneRecorder();
+            if (!this._cachedMicRecorder) {
+                this.discoverMicrophoneRecorder();
+                this._cachedMicRecorder = (this.microphone as any)._microphoneRecorder || null;
+            } else {
+                this.microphone.setMicrophoneRecorder(this._cachedMicRecorder);
+                this.character!.microphone = this.microphone;
+                this.log('Reconnected mic to cached MicrophoneRecorder');
+            }
         }
     }
     
@@ -396,7 +456,9 @@ export class EstuaryVoiceConnection extends BaseScriptComponent {
             // Set AudioComponent to Low Latency mode for faster TTS playback on Spectacles
             const audioComp = this.dynamicAudioOutputObject.getComponent("Component.AudioComponent");
             if (audioComp) {
-                (audioComp as AudioComponent).playbackMode = Audio.PlaybackMode.LowLatency;
+                this.audioComponent = audioComp as AudioComponent;
+                this.audioComponent.playbackMode = Audio.PlaybackMode.LowLatency;
+                this.audioComponent.volume = this._outputVolume;
                 this.log("AudioComponent set to Low Latency mode");
             }
         } else {
@@ -536,6 +598,19 @@ export class EstuaryVoiceConnection extends BaseScriptComponent {
     
     // ==================== Public Methods ====================
     
+    /** Output volume for bot audio (0.0 = muted, 1.0 = full). Clamped to 0-1. */
+    get outputVolume(): number {
+        return this._outputVolume;
+    }
+
+    set outputVolume(value: number) {
+        this._outputVolume = Math.max(0, Math.min(1, value));
+        if (this.audioComponent) {
+            this.audioComponent.volume = this._outputVolume;
+        }
+        this.log(`Output volume set to ${this._outputVolume.toFixed(2)}`);
+    }
+
     /** Send a text message to the AI */
     sendMessage(text: string): void {
         if (this.character?.isConnected) {
