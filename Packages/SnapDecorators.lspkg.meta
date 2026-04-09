@@ -1,8 +1,8 @@
-- !<AssetImportMetadata/a552bee1-d6be-4380-82ad-4ea26793d6ce>
+- !<AssetImportMetadata/b61a9133-109f-4562-96b0-c77feb98bed7>
   ImportedAssetIds:
     {}
   ImporterName: NativePackageImporter
-  PrimaryAsset: !<reference> 3a483e03-e11b-4e31-8d73-0a06c530e638
+  PrimaryAsset: !<reference> 4f86d03c-133c-45b5-b924-c646c422e6b0
   PackageType: PackedNativePackageRoot
   LegacyPackagePolicy: ~
   ExtraData:
