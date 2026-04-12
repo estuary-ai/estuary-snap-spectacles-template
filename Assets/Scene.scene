@@ -1981,6 +1981,7 @@
     "":
       credentialsObject: !<reference.SceneObject> 354d79a7-4024-46f7-a448-782736528c27
       microphoneRecorderObject: !<reference.SceneObject> c7d04291-fc00-4f58-bb6b-19aed41857c0
+      micAudioTrack: !<reference.AudioTrackAsset> 683b71a5-7d79-421d-9f72-238a7221025b
       dynamicAudioOutputObject: !<reference.SceneObject> 6dd1fcec-f498-43dc-9e18-7b0af1826c32
       internetModule: !<reference.InternetModule> 526d4deb-e562-4800-87e2-98140b398ecb
   ScriptTypes:
