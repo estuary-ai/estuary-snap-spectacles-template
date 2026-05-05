@@ -220,6 +220,81 @@ If the AI keeps responding to itself or you hear echoing:
 3. Consider adjusting the microphone sensitivity or speaker volume
 4. The SDK includes interrupt detection that should stop playback when you speak
 
+## EncounterTester (quick-260505-iaj)
+
+`Assets/Scripts/EncounterTester.ts` is a `@component` Behavior that
+exercises the new "Encounter" feature end-to-end on Spectacles. An
+Encounter is a stateless, prompt-driven, bounded 2-character A2A streaming
+session: you specify two character IDs, a topic prompt, and a turn budget,
+and the backend streams alternating turns (with optional TTS) over the
+existing `/sdk` Socket.IO connection. When it ends, it ends — no DB writes,
+no memory.
+
+See `SDK_CONTRACT.md` (`§Features > encounter` and `§REST API — Encounter`)
+for the canonical contract.
+
+### Add to a scene
+
+1. Drop `EncounterTester.ts` onto a SceneObject in your scene. Make sure
+   another bootstrap script (typically `SimpleAutoConnect`) has already
+   authenticated `EstuaryManager.instance` — `EncounterTester` polls
+   `EstuaryManager.instance.connectionState` and waits for `Connected`.
+2. Inspector wiring:
+   - **`characterAId` / `characterBId`** — UUIDs of two characters owned by
+     the API key configured on `EstuaryCredentials`. Both must satisfy
+     `Agent.user_id == api_key_user_id` server-side; mismatched IDs return
+     a non-enumerating HTTP 404.
+   - **`prompt`** — Topic/scene fed to both characters (1..2000 chars).
+   - **`maxTurns`** — One message = one turn. Server hard-caps at 20
+     (HTTP 422 if exceeded).
+   - **`voice`** — Toggle TTS playback. When true, both `audioOutputA*`
+     SceneObjects must be wired (see below).
+   - **`textComponent`** — Optional `Component.Text` that renders the
+     transcript as it arrives.
+   - **`autoStart`** — When true, fires on awake. When false, call
+     `EncounterTester.start()` from another script (e.g. a button).
+
+### Voice playback wiring (when `voice = true`)
+
+The Encounter feature emits `encounter_voice` events with `speaker: "a"` or
+`"b"`. The Behavior dispatches each PCM frame to one of two
+`DynamicAudioOutput` instances from `RemoteServiceGateway.lspkg`. To wire
+voice:
+
+1. Create two SceneObjects, each with a `DynamicAudioOutput` script and a
+   sibling `AudioComponent` (Snap's standard audio playback rig — see the
+   "Verify Audio Components" section above for the canonical setup).
+2. Drag the speaker-A SceneObject onto `audioOutputAObject`, and the
+   speaker-B SceneObject onto `audioOutputBObject`.
+3. The Behavior decodes `voice.audio` (base64 PCM 24 kHz mono) via Lens
+   Studio's native `Base64.decode(...)` and feeds the resulting
+   `Uint8Array` to `addAudioFrame(pcmBytes, 1)`. The exact decode + frame-
+   feed pattern is lifted from
+   `Assets/estuary-lens-studio-sdk/Examples/EstuaryVoiceConnection.ts:404-415`
+   — refer to that file as the canonical reference.
+
+The `DynamicAudioOutput` reference is typed as `any` in the `@input` because
+its TypeScript surface lives in `RemoteServiceGateway.lspkg` and is not part
+of the Estuary SDK's exports. The Behavior duck-types the component by
+checking for the `addAudioFrame` method.
+
+### What you should see
+
+With `voice = false` and `maxTurns = 6`, the Logger panel prints six lines
+of `[EncounterTester] (N) [A] ...` / `[EncounterTester] (N) [B] ...`
+followed by `[EncounterTester] Encounter ended: reason=max_turns_reached
+turns=6`. With `voice = true`, audio plays alternately from
+`audioOutputAObject` and `audioOutputBObject`.
+
+### Known limitations (MVP)
+
+- Characters with `tts_provider="inworld"` (the default) silently fall back
+  to the default ElevenLabs voice (`hpp4J3VqNfWAUOO0d1Us`, "Bella"); generic
+  gateway-side TTS dispatch is out of scope at MVP.
+- The encounter is NOT cancelled on disconnect; if you leave mid-encounter,
+  the server runs to completion and emits to a 0-subscriber room. Do not
+  rely on a reconnecting client receiving the prior turns.
+
 ## Additional Resources
 
 - **Estuary Documentation** — [docs.estuary-ai.com](https://docs.estuary-ai.com)
