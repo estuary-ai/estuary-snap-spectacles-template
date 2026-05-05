@@ -16,7 +16,6 @@ A demonstration Lens Studio project showcasing AI-powered character interactions
 
 ### Hardware
 - **Snap Spectacles (5th Generation)** — Required for voice features and AR interaction
-- WebSocket connections require actual Spectacles hardware (not available in Lens Studio Preview)
 
 ### Software
 - **Lens Studio 5.15+** — Download from [Snap AR](https://ar.snap.com/lens-studio)
@@ -58,8 +57,6 @@ These should already be connected to `EstuaryVoiceConnection` in the scene. If y
 1. Click **Publish Lens** in Lens Studio
 2. Push to your Spectacles device via the Snap app
 3. Launch the Lens on your Spectacles and start talking!
-
-**Note:** WebSocket connections only work on actual Spectacles hardware. The Preview mode will show an error about simulated platform limitations.
 
 ## Project Structure
 
@@ -181,10 +178,6 @@ Configure in `EstuaryVoiceConnection`:
 | Playback | Voice output rate | 16000 Hz |
 
 ## Troubleshooting
-
-### "WebSocket not available in Preview"
-
-This is expected. WebSocket connections only work on actual Spectacles hardware. Deploy your Lens to test voice features.
 
 ### No Voice Responses
 
