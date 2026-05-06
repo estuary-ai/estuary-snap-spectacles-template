@@ -37,6 +37,8 @@ export interface ImageToCharacterOptions {
     appearancePrompt?: string;
     /** Custom voice description (replaces default, char limit applied automatically) */
     voicePrompt?: string;
+    /** Custom persona/personality description (replaces default, char limit applied automatically) */
+    personaPrompt?: string;
 }
 
 export class EstuaryHttpClient {
@@ -77,6 +79,9 @@ export class EstuaryHttpClient {
         }
         if (options?.voicePrompt) {
             payload.voice_prompt = options.voicePrompt;
+        }
+        if (options?.personaPrompt) {
+            payload.persona_prompt = options.personaPrompt;
         }
         const body = JSON.stringify(payload);
 
@@ -254,28 +259,6 @@ export class EstuaryHttpClient {
     }
 
     /**
-     * Get a single character by ID.
-     * GET /api/v1/characters/{characterId}.
-     *
-     * @param characterId Character/agent UUID
-     * @returns The AgentResponse
-     */
-    async getCharacter(characterId: string): Promise<AgentResponse> {
-        const url = this.getHttpBaseUrl() + '/api/v1/characters/' + characterId;
-
-        const { status, body: responseBody } = await this.fetchJson('GET', url);
-
-        if (status >= 200 && status < 300) {
-            const json = JSON.parse(responseBody);
-            const agent = parseAgentResponse(json);
-            this.log(`Character loaded: ${agent.id} "${agent.name}"`);
-            return agent;
-        } else {
-            throw new Error(`Get character failed with status ${status}: ${responseBody.substring(0, 200)}`);
-        }
-    }
-
-    /**
      * Start a stateless 2-character Encounter via POST /api/encounters.
      *
      * The server runs the conversation in a background task and streams
@@ -327,6 +310,28 @@ export class EstuaryHttpClient {
                 `startEncounter failed (${status}): ` +
                 responseBody.substring(0, 200)
             );
+        }
+    }
+
+    /**
+     * Get a single character by ID.
+     * GET /api/v1/characters/{characterId}.
+     *
+     * @param characterId Character/agent UUID
+     * @returns The AgentResponse
+     */
+    async getCharacter(characterId: string): Promise<AgentResponse> {
+        const url = this.getHttpBaseUrl() + '/api/v1/characters/' + characterId;
+
+        const { status, body: responseBody } = await this.fetchJson('GET', url);
+
+        if (status >= 200 && status < 300) {
+            const json = JSON.parse(responseBody);
+            const agent = parseAgentResponse(json);
+            this.log(`Character loaded: ${agent.id} "${agent.name}"`);
+            return agent;
+        } else {
+            throw new Error(`Get character failed with status ${status}: ${responseBody.substring(0, 200)}`);
         }
     }
 

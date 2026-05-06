@@ -318,12 +318,33 @@ export class EstuaryClient extends EventEmitter<any> {
     }
 
     /**
+     * Send a client-initiated interrupt to cancel the current bot response.
+     * The server stops generating text and TTS for the referenced message and
+     * will emit an `interrupt` event back to confirm.
+     * @param messageId Optional message ID to interrupt. If omitted, the server
+     *                  interrupts whatever is currently being generated.
+     */
+    sendClientInterrupt(messageId?: string): void {
+        if (!this.isConnected) {
+            this.logError('Cannot send interrupt: not connected');
+            return;
+        }
+        const payload: { message_id?: string } = {};
+        if (messageId) {
+            payload.message_id = messageId;
+        }
+        this.emitSocketEvent('client_interrupt', payload);
+        this.log(`Sent client_interrupt${messageId ? ` for ${messageId}` : ''}`);
+    }
+
+    /**
      * Subscribe to streamed events for a previously-started Encounter.
      * The encounter must have been started via POST /api/encounters
      * (use ``EstuaryHttpClient.startEncounter`` or
      * ``EstuaryManager.startEncounter``) — this method only joins the
      * server-side room. Server emits ``encounter_message`` /
-     * ``encounter_voice`` / ``encounter_end`` to that room.
+     * ``encounter_voice`` / ``encounter_end`` to that room. See
+     * SDK_CONTRACT.md §Features > encounter.
      * @param encounterId UUID returned by POST /api/encounters
      */
     subscribeEncounter(encounterId: string): void {
@@ -770,18 +791,20 @@ export class EstuaryClient extends EventEmitter<any> {
         } catch (e: any) {
             const errorMsg = String(e);
 
-            // Check if this is the simulator limitation error
+            // Guard for older Lens Studio versions whose Preview surface did not expose
+            // WebSocket. Current Lens Studio (5.12+) supports WebSocket/HTTP in Preview
+            // — if this branch fires, the installed LS is too old for Estuary.
             if (errorMsg.includes('not available on the simulated platform')) {
                 this.logError('=======================================================');
-                this.logError('WebSocket NOT available in Lens Studio Preview!');
-                this.logError('This only works on actual Spectacles hardware.');
-                this.logError('Deploy your Lens to test WebSocket features.');
+                this.logError('WebSocket not available in this Lens Studio Preview build.');
+                this.logError('Upgrade to Lens Studio 5.12+ (Preview supports WebSocket),');
+                this.logError('or deploy the Lens to Spectacles hardware to test.');
                 this.logError('=======================================================');
 
-                // Don't retry - this will never work in simulator
+                // Don't retry on this older-LS path — it will never succeed in-session.
                 this._reconnectAttempts = this._config.maxReconnectAttempts;
                 this.setState(ConnectionState.Error);
-                this.emit('error', 'WebSocket not available in Preview. Deploy to Spectacles to test.');
+                this.emit('error', 'WebSocket unavailable — upgrade Lens Studio or deploy to Spectacles.');
                 return;
             }
 
@@ -1036,6 +1059,9 @@ export class EstuaryClient extends EventEmitter<any> {
             case 'voice_stopped':
                 this.handleVoiceStopped(data);
                 break;
+            case 'memory_updated':
+                this.handleMemoryUpdated(data);
+                break;
             case 'encounter_message':
                 this.handleEncounterMessage(data);
                 break;
@@ -1056,9 +1082,11 @@ export class EstuaryClient extends EventEmitter<any> {
             this.log('Received malformed encounter_message, ignoring');
             return;
         }
-        // Raw-string emit matches the existing 'botResponse' / 'botVoice'
-        // convention. EstuaryEvents.ts intentionally exports type aliases,
-        // NOT name constants.
+        this.log(`Encounter message: speaker=${msg.speaker} turn=${msg.turnIndex} len=${msg.text.length}`);
+        // Raw-string emit matches the existing `'botResponse'` / `'botVoice'`
+        // convention at this same call site (see handleBotResponse /
+        // handleBotVoice). EstuaryEvents.ts intentionally exports type
+        // aliases, NOT name constants.
         this.emit('encounterMessage', msg);
     }
 
@@ -1077,7 +1105,18 @@ export class EstuaryClient extends EventEmitter<any> {
             this.log('Received malformed encounter_end, ignoring');
             return;
         }
+        this.log(`Encounter end: reason=${end.reason} turns=${end.turnsEmitted}`);
         this.emit('encounterEnd', end);
+    }
+
+    private handleMemoryUpdated(data: any): void {
+        // Pass through to listeners — `new_memories` entries use camelCase per SDK_CONTRACT.md.
+        // Consumers that want strongly-typed access should define their own model; this handler
+        // intentionally forwards the raw payload to avoid enforcing a schema the server owns.
+        const memoriesCount =
+            (data && (data.memories_extracted ?? data.memoriesExtracted)) || 0;
+        this.log(`Memory updated: ${memoriesCount} memor${memoriesCount === 1 ? 'y' : 'ies'} extracted`);
+        this.emit('memoryUpdated', data);
     }
 
     private handleSessionInfo(data: any): void {

@@ -1556,7 +1556,6 @@
   ScriptAsset: !<reference> bc2f7ee6-4652-4023-93a6-1742fdde28ac
   ScriptInputsDefault:
     characterAId: true
-    characterBId: true
     prompt: true
     maxTurns: true
     voice: true
@@ -1568,7 +1567,7 @@
   ScriptInputs:
     "":
       characterAId: ""
-      characterBId: ""
+      characterBId: 558ab59c-572c-47e1-b4ea-2bf5ee49d0bb
       prompt: Argue about whether pineapple belongs on pizza.
       maxTurns: !<float> 6.000000
       voice: false

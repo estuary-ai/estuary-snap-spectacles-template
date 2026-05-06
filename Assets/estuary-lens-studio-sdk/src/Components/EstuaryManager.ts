@@ -24,6 +24,9 @@ import { BotResponse } from '../Models/BotResponse';
 import { BotVoice } from '../Models/BotVoice';
 import { SttResponse } from '../Models/SttResponse';
 import { InterruptData } from '../Models/InterruptData';
+import { EncounterMessage } from '../Models/EncounterMessage';
+import { EncounterVoice } from '../Models/EncounterVoice';
+import { EncounterEnd } from '../Models/EncounterEnd';
 
 /**
  * Singleton manager for the Estuary SDK in Lens Studio.
@@ -294,6 +297,19 @@ export class EstuaryManager extends EventEmitter<any> {
     }
 
     /**
+     * Send a client-initiated interrupt to cancel the in-progress bot response.
+     * The server will stop generation and emit an `interrupt` event back.
+     * @param messageId Optional message ID to interrupt. Omit to interrupt the current response.
+     */
+    sendClientInterrupt(messageId?: string): void {
+        if (!this._client.isConnected) {
+            return;
+        }
+
+        this._client.sendClientInterrupt(messageId);
+    }
+
+    /**
      * Send a camera image to the server for AI analysis.
      * @param imageBase64 Base64-encoded image data
      * @param mimeType MIME type of the image (e.g., 'image/jpeg')
@@ -317,14 +333,18 @@ export class EstuaryManager extends EventEmitter<any> {
     //
     // Prior features (text_chat, voice_websocket, vision_camera, etc.) wire
     // inbound events internally and dispatch them through
-    // ``IEstuaryCharacterHandler`` to the active per-character instance.
-    // That model fits per-character conversation events, but Encounter is a
-    // 2-character feature with no single "active character" to dispatch to.
+    // ``IEstuaryCharacterHandler`` to the active per-character instance
+    // (see ``initialize()`` lines below — ``handleBotResponse`` /
+    // ``handleBotVoice`` etc.). That model fits per-character conversation
+    // events, but Encounter is a 2-character feature with no single "active
+    // character" to dispatch to.
     //
     // Therefore Encounter introduces a NEW convention on EstuaryManager:
-    // public ``onEncounterX(handler)`` forwarder methods that subscribe a
-    // user-supplied handler directly to the underlying EstuaryClient
-    // ``EventEmitter``.
+    // public ``onEncounterX(handler)`` forwarder methods that subscribe
+    // a user-supplied handler directly to the underlying EstuaryClient
+    // ``EventEmitter``. This is the FIRST feature to expose EventEmitter
+    // subscriptions through EstuaryManager. Document accordingly in
+    // CLAUDE.md Parity Status so future readers understand the divergence.
 
     /**
      * Start a stateless 2-character Encounter.
