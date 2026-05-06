@@ -1,12 +1,12 @@
 /**
- * EncounterTester.ts
+ * EncounterDemo.ts
  *
- * Drives a stateless 2-character "Encounter" against the Estuary backend
- * (quick-260505-iaj). Calls `EstuaryManager.instance.startEncounter(...)`,
- * subscribes to the room, and renders the streamed alternating-turn
- * messages to a Text component. With `voice` enabled it dispatches
- * `encounter_voice` PCM frames to two `DynamicAudioOutput` instances
- * (one per speaker, from `RemoteServiceGateway.lspkg`).
+ * Drives a stateless 2-character "Encounter" against the Estuary backend.
+ * Calls `EstuaryManager.instance.startEncounter(...)`, subscribes to the
+ * room, and renders the streamed alternating-turn messages to a Text
+ * component. With `voice` enabled it dispatches `encounter_voice` PCM
+ * frames to two `DynamicAudioOutput` instances (one per speaker, from
+ * `RemoteServiceGateway.lspkg`).
  *
  * Setup in Lens Studio:
  *  1. Add this script to a SceneObject in your scene.
@@ -43,7 +43,7 @@ interface DynamicAudioOutput {
 }
 
 @component
-export class EncounterTester extends BaseScriptComponent {
+export class EncounterDemo extends BaseScriptComponent {
 
     @input
     @hint("Owned character A UUID — must satisfy Agent.user_id == api_key_user_id")
@@ -82,7 +82,7 @@ export class EncounterTester extends BaseScriptComponent {
     audioOutputBObject: SceneObject;
 
     @input
-    @hint("Auto-start on awake (otherwise call EncounterTester.start() from another script)")
+    @hint("Auto-start on awake (otherwise call EncounterDemo.start() from another script)")
     autoStart: boolean = true;
 
     @input
@@ -161,7 +161,7 @@ export class EncounterTester extends BaseScriptComponent {
                 voice: this.voice,
                 starter: "a",
             });
-            print(`[EncounterTester] encounterId=${encounterId}`);
+            print(`[EncounterDemo] encounterId=${encounterId}`);
             mgr.subscribeEncounter(encounterId);
         } catch (e) {
             this.logError(`startEncounter failed: ${e}`);
@@ -175,7 +175,7 @@ export class EncounterTester extends BaseScriptComponent {
         if (this.textComponent) {
             this.textComponent.text = this._buffer;
         }
-        print(`[EncounterTester] (${m.turnIndex}) ${line}`);
+        print(`[EncounterDemo] (${m.turnIndex}) ${line}`);
     }
 
     private onVoice(v: EncounterVoice): void {
@@ -210,7 +210,7 @@ export class EncounterTester extends BaseScriptComponent {
     private onEnd(e: EncounterEnd): void {
         if (this._ended) return;
         this._ended = true;
-        print(`[EncounterTester] Encounter ended: reason=${e.reason} turns=${e.turnsEmitted}`);
+        print(`[EncounterDemo] Encounter ended: reason=${e.reason} turns=${e.turnsEmitted}`);
     }
 
     // ==================== Helpers ====================
@@ -235,11 +235,11 @@ export class EncounterTester extends BaseScriptComponent {
 
     private log(message: string): void {
         if (this.debugLogging) {
-            print(`[EncounterTester] ${message}`);
+            print(`[EncounterDemo] ${message}`);
         }
     }
 
     private logError(message: string): void {
-        print(`[EncounterTester] ERROR: ${message}`);
+        print(`[EncounterDemo] ERROR: ${message}`);
     }
 }

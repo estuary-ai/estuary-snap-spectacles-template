@@ -213,9 +213,9 @@ If the AI keeps responding to itself or you hear echoing:
 3. Consider adjusting the microphone sensitivity or speaker volume
 4. The SDK includes interrupt detection that should stop playback when you speak
 
-## EncounterTester (quick-260505-iaj)
+## EncounterDemo
 
-`Assets/Scripts/EncounterTester.ts` is a `@component` Behavior that
+`Assets/Scripts/EncounterDemo.ts` is a `@component` Behavior that
 exercises the new "Encounter" feature end-to-end on Spectacles. An
 Encounter is a stateless, prompt-driven, bounded 2-character A2A streaming
 session: you specify two character IDs, a topic prompt, and a turn budget,
@@ -228,9 +228,9 @@ for the canonical contract.
 
 ### Add to a scene
 
-1. Drop `EncounterTester.ts` onto a SceneObject in your scene. Make sure
+1. Drop `EncounterDemo.ts` onto a SceneObject in your scene. Make sure
    another bootstrap script (typically `SimpleAutoConnect`) has already
-   authenticated `EstuaryManager.instance` — `EncounterTester` polls
+   authenticated `EstuaryManager.instance` — `EncounterDemo` polls
    `EstuaryManager.instance.connectionState` and waits for `Connected`.
 2. Inspector wiring:
    - **`characterAId` / `characterBId`** — UUIDs of two characters owned by
@@ -245,7 +245,7 @@ for the canonical contract.
    - **`textComponent`** — Optional `Component.Text` that renders the
      transcript as it arrives.
    - **`autoStart`** — When true, fires on awake. When false, call
-     `EncounterTester.start()` from another script (e.g. a button).
+     `EncounterDemo.start()` from another script (e.g. a button).
 
 ### Voice playback wiring (when `voice = true`)
 
@@ -274,8 +274,8 @@ checking for the `addAudioFrame` method.
 ### What you should see
 
 With `voice = false` and `maxTurns = 6`, the Logger panel prints six lines
-of `[EncounterTester] (N) [A] ...` / `[EncounterTester] (N) [B] ...`
-followed by `[EncounterTester] Encounter ended: reason=max_turns_reached
+of `[EncounterDemo] (N) [A] ...` / `[EncounterDemo] (N) [B] ...`
+followed by `[EncounterDemo] Encounter ended: reason=max_turns_reached
 turns=6`. With `voice = true`, audio plays alternately from
 `audioOutputAObject` and `audioOutputBObject`.
 

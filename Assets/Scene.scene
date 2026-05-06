@@ -12,6 +12,7 @@
     - !<own> 6f93ef89-a2e7-42e9-87e9-c8fe757a6418
     - !<own> 8d9a2b22-6b61-45b3-b385-4092cc3606ca
     - !<own> 9b177d38-0678-484d-ac85-2518bc62873b
+    - !<own> e94c7e9c-24c5-4f42-a62a-7a3b0b62b49b
   layers: !<Layers/267ee9a7-aff2-4f9d-9a49-f71214747d03>
     userLayers:
       - |
@@ -1543,6 +1544,38 @@
     "":
       indicatorObject: !<reference.SceneObject> 6f93ef89-a2e7-42e9-87e9-c8fe757a6418
       indicatorMaterial: !<reference.Material> 07121ee3-c183-4a61-9860-03425c42c475
+      debugLogging: false
+  ScriptTypes:
+    "":
+      {}
+- !<ScriptComponent/7bd7fe54-791e-4d1b-942a-fcf99e92687a>
+  PrefabRemaps:
+    []
+  Name: EncounterDemo
+  Enabled: false
+  ScriptAsset: !<reference> bc2f7ee6-4652-4023-93a6-1742fdde28ac
+  ScriptInputsDefault:
+    characterAId: true
+    characterBId: true
+    prompt: true
+    maxTurns: true
+    voice: true
+    textComponent: true
+    autoStart: true
+    debugLogging: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      characterAId: ""
+      characterBId: ""
+      prompt: Argue about whether pineapple belongs on pizza.
+      maxTurns: !<float> 6.000000
+      voice: false
+      textComponent: !<reference.Text> 00000000-0000-0000-0000-000000000000
+      audioOutputAObject: !<reference.SceneObject> 6dd1fcec-f498-43dc-9e18-7b0af1826c32
+      audioOutputBObject: !<reference.SceneObject> 6dd1fcec-f498-43dc-9e18-7b0af1826c32
+      autoStart: true
       debugLogging: false
   ScriptTypes:
     "":
@@ -3534,6 +3567,21 @@
     - !<own> 3442d011-7e9b-4866-85e2-67315e9303e7
   Components:
     []
+- !<SceneObject/e94c7e9c-24c5-4f42-a62a-7a3b0b62b49b>
+  PrefabRemaps:
+    []
+  Name: Encounter Demo
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 7bd7fe54-791e-4d1b-942a-fcf99e92687a
 - !<SceneObject/e9dc1b82-5014-4e90-8b56-4acdaaf3778f>
   PrefabRemaps:
     []
