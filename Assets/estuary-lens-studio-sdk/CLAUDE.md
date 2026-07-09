@@ -33,21 +33,28 @@ default_playback_sample_rate: 24000    # TTS audio generated at 24kHz
 | Feature | Status | Notes |
 |---------|--------|-------|
 | text_chat | Implemented | Full parity |
+| say_line | Implemented | `EstuaryClient.sayLine(text, textOnly?)` emits `say_line` with `text_only` flag |
 | voice_websocket | Implemented | Base64 PCM over WebSocket (only voice option) |
+| voice_push_to_talk | Implemented | PTT semantics available via `startVoiceMode()` / `stopVoiceMode()` — no separate API, client drives the recording window |
 | voice_livekit | Not available | Spectacles lacks WebRTC — voice_websocket is the only path |
-| interrupts | Implemented | Full parity |
+| interrupts | Implemented | `client_interrupt` emitted via `EstuaryCharacter.interrupt()` / `EstuaryManager.sendClientInterrupt()`; inbound `interrupt` parsed with `message_id` / `reason` / `interrupted_at` |
 | audio_playback_tracking | Implemented | Full parity |
 | vision_camera | Implemented | On-demand via CameraModule |
 | video_streaming_livekit | Not available | No WebRTC |
 | video_streaming_websocket | Not implemented | Could be added via `video_frame` event if needed |
 | scene_graph | Not applicable | No AR world model on Spectacles |
 | device_pose | Implemented | Via DeviceTracking |
+| memory_push | Implemented | `memory_updated` event forwarded as `memoryUpdated` on EstuaryClient (raw payload; `new_memories` uses camelCase per contract) |
 | preferences | Not implemented | No update_preferences event or enableVisionAcknowledgment handling |
 | http_client | Implemented | Image-to-character (JSON+base64), model polling, character listing |
 | image_to_character | Implemented | Via JSON+base64 (no multipart/form-data on Spectacles) |
 | model_polling | Implemented | Exponential backoff 2s-10s |
 | character_listing | Implemented | Paginated GET /api/v1/characters |
 | glb_download | Implemented | downloadAndInstantiateGlb() on EstuaryHttpClient; uses InternetModule + RemoteMediaModule + GltfAsset pipeline |
+| session_timeout | Implemented | Server idle-timeout (no conversation activity). Suppression exists at BOTH reconnect layers: `EstuaryClient` flags the close as intentional (`_serverEndedSession`) so its `autoReconnect` stays quiet, AND `EstuaryCharacter` (which does its own reconnection in `handleDisconnected` — the manager disables client-level reconnect by design) skips `_autoReconnect` via its own `_serverEndedSession` flag set in `handleSessionTimeout`. Without the character-layer flag the reap loops: reconnect → re-auth → billed resources → reaped again. Forwarded client → manager → character (`IEstuaryCharacterHandler.handleSessionTimeout?`, optional) and re-emitted as `sessionTimeout` on all three. Character also stops the mic. Resume = explicit `connect()` on user intent (example: `EstuaryVoiceConnection.reconnect()`, wired to tap). |
+| voice_timeout | Implemented | Server voice-lane idle release (SDK_CONTRACT.md). No LiveKit on Spectacles, but this ALSO applies to WebSocket voice: after no user speech for `VOICE_IDLE_TIMEOUT_S` (while e.g. text keeps the session alive), the server emits `voice_timeout` and closes the STT stream, KEEPING the socket. `EstuaryClient` re-emits `voiceTimeout` (raw contract payload; deliberately does NOT touch the `_serverEndedSession` reconnect-suppression flag — no disconnect follows, unlike `session_timeout`); `EstuaryManager` forwards to the active character (`IEstuaryCharacterHandler.handleVoiceTimeout?` — optional for backward compat) and re-emits; `EstuaryCharacter.handleVoiceTimeout` stops the mic, clears `_isVoiceSessionActive` (no more audio into the closed stream), and re-emits `voiceTimeout` for the app. No `stop_voice` is sent (server side already released). Resume = `startVoiceSession()` on user intent — recommended UX is the auto-mute illusion. |
+| session_rejected | Documented (not implemented) | Event documented in SDK_CONTRACT.md per quick-task 260416-jta (concurrent session cap MVP on share tokens). Gateway emits `session_rejected` with `reason: "concurrent_limit"` then disconnects; Spectacles SDK currently treats this as a generic disconnect. Client handler + user-visible message surfacing deferred until share-token flows go consumer-facing. |
+| encounter | Implemented | `EstuaryManager.startEncounter()` (REST) + `subscribeEncounter()` + `onEncounterMessage` / `onEncounterVoice` / `onEncounterEnd`; voice playback requires consumer to wire two `DynamicAudioOutput` instances (one per speaker) — see SDK_CONTRACT.md §Features > encounter. Inworld characters fall back to default ElevenLabs voice for MVP. NOTE: introduces a new convention — direct `EventEmitter` forwarders on `EstuaryManager` (prior features dispatch through `IEstuaryCharacterHandler`). |
 
 ## Architecture
 
