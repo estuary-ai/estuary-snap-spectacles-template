@@ -4,7 +4,7 @@ A demonstration Lens Studio project showcasing AI-powered character interactions
 
 ## SDK snapshot for device testing
 
-`Assets/estuary-lens-studio-sdk` is synced from standalone SDK commit `3066b81` on `feat/scrum-255-api-foundations`. Existing Lens asset IDs were retained so the scene keeps its script references. See [conversation parity](Assets/estuary-lens-studio-sdk/docs/conversation-parity.md) for the new API and device acceptance cases.
+`Assets/estuary-lens-studio-sdk` is synced from standalone SDK commit `3066b81` on `feat/scrum-255-api-foundations`. Existing Lens asset IDs were retained so the scene keeps its script references.
 
 The demo still starts continuous voice. To exercise the new PTT API, wire a temporary press/release control to `beginPushToTalk()` and `endPushToTalk()` in a test scene. The voice example's exact playback completion flag defaults to off until its native clock has been verified on Spectacles. The gateway's stale playback report fix is in backend commit `8af549a` and needs to be running for that particular check.
 
