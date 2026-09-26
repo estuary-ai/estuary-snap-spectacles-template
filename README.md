@@ -2,6 +2,12 @@
 
 A demonstration Lens Studio project showcasing AI-powered character interactions on Snap Spectacles using the Estuary SDK. This project features a friendly cloud character that can follow you around and engage in natural voice conversations.
 
+## SDK snapshot for device testing
+
+`Assets/estuary-lens-studio-sdk` is synced from standalone SDK commit `3066b81` on `feat/scrum-255-api-foundations`. Existing Lens asset IDs were retained so the scene keeps its script references. See [conversation parity](Assets/estuary-lens-studio-sdk/docs/conversation-parity.md) for the new API and device acceptance cases.
+
+The demo still starts continuous voice. To exercise the new PTT API, wire a temporary press/release control to `beginPushToTalk()` and `endPushToTalk()` in a test scene. The voice example's exact playback completion flag defaults to off until its native clock has been verified on Spectacles. The gateway's stale playback report fix is in backend commit `8af549a` and needs to be running for that particular check.
+
 ## Features
 
 - **Real-Time Voice Conversations** — Talk naturally with AI characters using Spectacles' built-in microphone
@@ -54,9 +60,9 @@ These should already be connected to `EstuaryVoiceConnection` in the scene. If y
 
 ### 4. Deploy to Spectacles
 
-1. Click **Publish Lens** in Lens Studio
-2. Push to your Spectacles device via the Snap app
-3. Launch the Lens on your Spectacles and start talking!
+1. Set **Made For Spectacles** in Project Info and connect your Spectacles to Lens Studio
+2. Click **Preview Lens** or **Send to Spectacles** to install a local draft; publishing is not required
+3. Launch the draft Lens on your Spectacles and start talking!
 
 ## Project Structure
 
