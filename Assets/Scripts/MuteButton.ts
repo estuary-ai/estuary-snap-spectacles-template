@@ -78,7 +78,6 @@ export class MuteButton extends BaseScriptComponent {
     // ==================== Lifecycle ====================
 
     onAwake() {
-        print("[MuteButton] onAwake() started");
 
         // Attach to right hand palm
         this._hand = HandInputData.getInstance().getHand("right");
@@ -89,7 +88,6 @@ export class MuteButton extends BaseScriptComponent {
         if (this.pttEffectObject) this.pttEffectObject.enabled = false;
 
         this._hand.onHandFound.add(() => {
-            print("[MuteButton] Hand found — attaching mute button");
             this.attachToHand(sceneObj);
             if (this.pttEffectObject) {
                 this.pttEffectObject.setParent(this._hand.indexTip.getAttachmentPoint());
@@ -132,7 +130,6 @@ export class MuteButton extends BaseScriptComponent {
         const updateEvent = this.createEvent("UpdateEvent");
         updateEvent.bind(() => this.onUpdate());
 
-        print("[MuteButton] onAwake() completed — waiting for components...");
 
         // Suppress verbose SIK hand-tracking logs (defensive — must not crash onAwake)
         try {
